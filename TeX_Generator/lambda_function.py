@@ -1,5 +1,5 @@
 import json
-
+import os
 import boto3
 import template
 
@@ -96,7 +96,7 @@ def lambda_handler(event, _):
     if table_row["ImgUploaded"] and use_img:
         contact_list.append(
             template.personal.picture.format(
-                picture=".".join(table_row["ImgFile"].split(".")[:-1])
+                picture=os.path.splitext(table_row["ImgFile"])[0]
             )
         )
         if not event["Translated"]:
@@ -255,5 +255,18 @@ def lambda_handler(event, _):
                 InvocationType="Event",
                 Payload=json.dumps({"ClientID": CID}),
             )
+
+    # Send message to delay queue to trigger packager
+    if event["Translated"] or options["service"] not in ["p", "t"]:
+        boto3.client("sqs").send_message(
+            QueueUrl=os.environ["PACK_QUEUE_URL"],
+            MessageBody=json.dumps(
+                {
+                    "ClientID": CID,
+                    "Translated": event["Translated"],
+                    "Image": (table_row["ImgUploaded"] and use_img),
+                }
+            ),
+        )
 
     return {"statusCode": 200}

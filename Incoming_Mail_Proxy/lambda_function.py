@@ -3,7 +3,6 @@ import boto3
 from botocore.exceptions import ClientError
 
 import email
-from email.message import EmailMessage
 
 region = os.environ["Region"]
 delimiter = "|$+$|"

@@ -1,6 +1,7 @@
 import base64
 import imghdr
 import json
+import os
 import time
 
 import boto3
